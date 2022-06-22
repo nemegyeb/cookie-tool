@@ -141,7 +141,7 @@ export default {
             }
         },
         validateReq(url){
-            return url.protocol && validateSet(url.domain);
+            return url.protocol && this.validateSet(url.domain);
         },
         validateSet(url){
             const regex = /([a-z]+\.)+[a-z]+/;
