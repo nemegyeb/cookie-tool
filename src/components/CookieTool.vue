@@ -141,12 +141,11 @@ export default {
             }
         },
         validateReq(url){
-            const dom = url.domain;
-            return url.protocol && dom.indexOf('.') != -1 && dom.indexOf('.') != dom.length - 1;
+            return url.protocol && validateSet(url.domain);
         },
         validateSet(url){
-            const dom = url.domain;
-            return dom.indexOf('.') != -1 && dom.indexOf('.') != dom.length - 1;
+            const regex = /.+\.[a-z]{1,3}/;
+            return url.domain.match(regex) != null;
         },
         isSuffix(str, suffix){
             return str.indexOf(suffix, str.length - suffix.length) !== -1;
