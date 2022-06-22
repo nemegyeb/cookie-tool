@@ -144,7 +144,7 @@ export default {
             return url.protocol && validateSet(url.domain);
         },
         validateSet(url){
-            const regex = /.+\.[a-z]{1,3}/;
+            const regex = /([a-z]+\.)+[a-z]+/;
             return url.domain.match(regex) != null;
         },
         isSuffix(str, suffix){
