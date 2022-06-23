@@ -11,10 +11,10 @@
             </tr>
             <tr>
                 <td>
-                    <input type="text" v-model.trim="domain" placeholder="not set">
+                    <UrlInput placeholder="not set" @update:value="x => domain = x" :requirements="{optional: true}"/>
                 </td>
                 <td>
-                    <input type="text" v-model.trim="origin" placeholder="set origin domain" :class="{'error': !validOrigin}">
+                    <UrlInput placeholder="set origin domain" @update:value="x => origin = x"/>
                 </td>
                 <td>
                     <input type="text" v-model.trim="path" placeholder="/">
@@ -42,13 +42,13 @@
             </tr>
             <tr>
                 <td>
-                    <input type="text" v-model.trim="source" placeholder="set source" :class="{'error': !validSource}">
+                    <UrlInput placeholder="set source" @update:value="x => source = x"/>
                 </td>
                 <td>
-                    <input type="text" v-model.trim="destination" placeholder="set destination" :class="{'error': !validDestination}">
+                    <UrlInput placeholder="set destination" @update:value="x => destination = x" :requirements="{protocol: true}"/>
                 </td>
                 <td>
-                    <span :class="{'send' : sent}">{{toSend}}</span>
+                    <span :class="{send : send, keep : !send}">{{send ? 'sent' : 'not sent' }}</span>
                 </td>
             </tr>
         </table>
@@ -56,111 +56,60 @@
 </template>
 
 <script>
+import UrlInput from "./UrlInput.vue";
 export default {
-    data(){
+    name: "CookieTool",
+    components: { UrlInput },
+    data() {
         return {
-            domain: "",
-            origin: "",
+            domain: {valid: true},
+            origin: {},
             path: "",
             secure: false,
             http: false,
-            sameSite: null,
+            sameSite: "",
             types: ["Lax", "Strict", "None"],
-            source: "",
-            destination: ""
-        }
+            source: {},
+            destination: {}
+        };
     },
     computed: {
-        sent(){
-            if(!this.validOrigin || !this.validDestination || !this.validSource || !this.validDestination) return false;
-            const pOrigin = this.parseSet(this.origin);
-            const pDest = this.parseReq(this.destination);
-            const pSource = this.parseSet(this.source);
+        send() {
+            if (!this.domain.valid || !this.origin.valid || !this.source.valid || !this.destination.valid) return false;
             let send = true;
-
-            if(this.domain){
-                const pDomain = this.parseSet(this.domain);
-                send &= this.isSuffix(pDest.domain, pDomain.domain);
-            } else{
-                send &= pOrigin.domain === pDest.domain;
+            if (this.domain.data?.domain) {
+                send &&= this.destination.data.domain.endsWith(this.domain.data.domain);//TODO check domain-suffix
             }
-
-            send &= pDest.path.startsWith(this.path);
-
-            send &= this.secure ? pDest.protocol === "https" : true;
-
-            switch(this.sameSite){
-                case "Lax":                    
+            else {
+                send &&= this.destination.data.domain === this.origin.data.domain;
+            }
+            send &&= this.destination.data.path.startsWith(this.path);//TODO check whole path
+            send &&= this.secure ? this.destination.data.protocol === "https://" : true;
+            switch (this.sameSite) {
+                case "Lax":
                     break;
                 case "Strict":
-                    send &= !this.isCrossSite(pSource.domain, pDest.domain);
+                    send &&= !this.isCrossSite;
                     break;
                 case "None":
-                    send &= !this.secure;
+                    send &&= !this.secure;
                     break;
             }
-
             return send;
         },
-        toSend(){
-            return this.sent ? "sent" : "not sent";
-        },
-        validOrigin(){
-            return this.origin && this.validateSet(this.parseSet(this.origin));
-        },
-        validSource(){
-            return this.source && this.validateSet(this.parseSet(this.source));
-        },
-        validDestination(){
-            return this.destination && this.validateReq(this.parseReq(this.destination));
+        isCrossSite(){
+            return this.extractTLD(this.source.data.domain) !== this.extractTLD(this.destination.data.domain);
         }
     },
     methods: {
-        parseReq(str){
-            const prot = str.indexOf('://');
-            let dom = str.indexOf('/', prot + 3);
-            dom = dom == -1 ? str.length : dom
-            return {
-                protocol: prot == -1 ? "" : str.substring(0,prot),
-                domain: str.substring(prot + 3, dom),
-                path: str.substring(dom) || "/"
-            }
-        },
-        parseSet(str){
-            let start;
-            if(str.startsWith('http://')){
-                start = 'http://'.length;
-            } else if(str.startsWith('https://')){
-                start = 'https://'.length;
-            }
-            let dom = str.indexOf('/', start);
-            dom = dom == -1 ? str.length : dom
-            return {
-                domain: str.substring(start, dom),
-                path: str.substring(dom) || "/"
-            }
-        },
-        validateReq(url){
-            return url.protocol && this.validateSet(url.domain);
-        },
-        validateSet(url){
-            const regex = /([a-z]+\.)+[a-z]+/;
-            return url.domain.match(regex) != null;
-        },
-        isSuffix(str, suffix){
-            return str.indexOf(suffix, str.length - suffix.length) !== -1;
-        },
-        extractTLD(str){
-            const regex = /[^\.]*\..{1,3}$/;
-            return (str.match(regex) || [""])[0];
-        },
-        isCrossSite(source, dest){
-            return this.extractTLD(source) !== this.extractTLD(dest);
+        extractTLD(str) {
+            const regex = /[a-z]+\.[a-z]+$/;
+            return str.match(regex)[0];
         }
     },
-    mounted(){
+    mounted() {
         this.sameSite = this.types[0];
-    }
+    }    
 }
 </script>
 
@@ -185,7 +134,9 @@ td{
     border: solid seagreen 5px;
 }
 
-.error{
-    border: solid orangered 2px;
+.keep{
+    padding: 5px;
+    font-weight: bold;
+    border: solid red 2px;
 }
 </style>

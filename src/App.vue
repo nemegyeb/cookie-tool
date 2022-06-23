@@ -6,7 +6,7 @@ import CookieTool from './components/CookieTool.vue';
 
 <template>
     <img alt="Cookies" src="https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fassets.stickpng.com%2Fthumbs%2F580b57fbd9996e24bc43c103.png&f=1&nofb=1" />
-    <CookieTool />
+    <CookieTool/>
 </template>
 
 <style>
