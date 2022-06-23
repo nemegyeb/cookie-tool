@@ -1,16 +1,17 @@
 <template>
-    <input type="text" v-model.trim="input" :placeholder="placeholder" :class="{ error: !valid }" />
+    <div>
+        <input type="text" v-model.trim="input" :placeholder="placeholder" :class="{ error: !valid }" />
+    </div>
 </template>
 
 <script>
 export default {
     name: 'UrlInput',
     props: {
-        value: Object,
         placeholder: String,
         requirements: Object
     },
-    emits: ['update:value'],
+    emits: ['update'],
     data() {
         return {
             text: ""
@@ -52,7 +53,7 @@ export default {
             },
             set(val){
                 this.text = val;
-                this.$emit('update:value', this.url);
+                this.$emit('update', this.url);
             }
         }
     }
