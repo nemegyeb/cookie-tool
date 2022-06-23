@@ -31,7 +31,7 @@
                     </select>
                 </td>
             </tr>
-        </table>        
+        </table>
     </div>
     <div class="centered">
         <table>
