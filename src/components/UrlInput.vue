@@ -8,10 +8,11 @@
 export default {
     name: 'UrlInput',
     props: {
+        modelValue: Object,
         placeholder: String,
         requirements: Object
     },
-    emits: ['update'],
+    emits: ['update:modelValue'],
     data() {
         return {
             text: ""
@@ -49,11 +50,14 @@ export default {
         },
         input: {
             get(){
+                if(this.modelValue.reset){
+                    this.text = "";
+                }
                 return this.text;
             },
             set(val){
                 this.text = val;
-                this.$emit('update', this.url);
+                this.$emit('update:modelValue', this.url);
             }
         }
     }
